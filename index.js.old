@@ -1,0 +1,197 @@
+const fs = require('fs');
+var express = require('express');
+var app = express();
+const fetch = require('node-fetch');
+let commands = fs.readdirSync('./commands').filter(file => file.endsWith('.txt'));
+var server = require('http').createServer(app);
+
+function removeA(arr) {
+    var what, a = arguments, L = a.length, ax;
+    while (L > 1 && arr.length) {
+        what = a[--L];
+        while ((ax= arr.indexOf(what)) !== -1) {
+            arr.splice(ax, 1);
+        }
+    }
+    return arr;
+}
+function systemmessage(usr,msg){
+  SOCKET_LIST[usr].emit('addToChat', `<name style="color:#FF0000";><b>SYSTEM</b>:</name><par>${msg}</par>`)
+}
+function systemannounce(msg){
+  for(var i in SOCKET_LIST){
+  SOCKET_LIST[i].emit('addToChat', `<name style="color:#FF0000";><b>SYSTEM</b>:</name><par>${msg}</par>`)
+
+  }
+}
+
+app.get('/',function(req, res) {
+ res.sendFile(__dirname + '/client/index.html');
+});
+app.use('/client',express.static(__dirname + '/client'));
+
+
+console.log("Server started.");
+SOCKET_ADDY = []
+SOCKET_LIST = {};
+ROOMS = []
+var io = require('socket.io')(server);
+io.sockets.on('connection', function(socket){
+
+        console.log('new user!');
+        var socketId = Math.random();
+        var username = socketId
+        systemannounce("A new user has connected")
+
+        var user = {
+          username: socketId,
+          socket: socketId,
+          color: '#FF0000',
+          room: 'GENERAL'
+        }
+        SOCKET_ADDY[username] = {socket: socketId, room: 'GENERAL'}
+        SOCKET_LIST[socketId] = socket;
+        function getSocketId(x){
+          //get user
+        }
+        var usersocket = SOCKET_ADDY[user.username].socket
+
+        socket.on('sendMsgToServer',function(data){
+          console.log(data)
+
+          var prefix = '%'
+          var data = data.replace(/<.*>/, ' ')
+
+          var args = data.split(' ')
+          var cmd = args[0]
+          args.shift()
+          switch (cmd) {
+            case '%changename':
+            var oldname = user.username
+            user.username = args.join(' ')
+            console.log('Name Change Detected')
+            SOCKET_ADDY[user.username] = {socket: socketId, room: SOCKET_ADDY[oldname].room}
+            delete SOCKET_ADDY[oldname];
+            return systemmessage(usersocket,`Your name has been changed to ${user.username}`)
+
+              break;
+            case '%help':
+              return SOCKET_LIST[usersocket].emit('addToChat', `<name style="color:${user.color}";><b>SYSTEM</b>:</name><par>Welcome to my chat app! Do "%changename name" to change your username, and %namecolor to change the color! Finally, you can dm someone via (%dm username message)!</par>`)
+
+              break;
+            case '%img':
+              var data = 'indev'
+              break;
+            case '%namecolor':
+              user.color = args[0]
+              break;
+            case '%dm':
+              var target = args[0]
+              args.shift()
+              var mesg = args.join(' ')
+              if(SOCKET_LIST[SOCKET_ADDY[target].socket] === undefined){
+                return SOCKET_LIST[usersocket].emit('addToChat', `<name style="color:${user.color}";><b>SYSTEM</b>:</name><par>This is not a valid user!</par>`);
+              }else{
+              SOCKET_LIST[SOCKET_ADDY[target].socket].emit('addToChat', `<small><name style="color:${user.color}";><b>(DM) ${user.username}</b>:</name><par>${mesg}</par></small>`);
+              return SOCKET_LIST[usersocket].emit('addToChat', `<small><name style="color:${user.color}";><b>(DM) ${user.username}</b>:</name><par>${mesg}</par></small>`)}
+              break;
+            case '%debug':
+              var data = `SOCKET_LIST = (${SOCKET_LIST}) || SOCKET_ADDY = (${SOCKET_ADDY}) || SOCKET_ADDY[username] = (${SOCKET_ADDY[username]})`
+              console.log(SOCKET_ADDY)
+              console.log(SOCKET_ADDY[user.username].room)
+              console.log(user)
+              break;
+            case '%getsocket':
+              var data = `${args[0]} socket is ${SOCKET_ADDY[args[0]].socket}`
+              break;
+            case '%changeroom':
+            //rooms are gonna suck ass lol
+            //idk how I'mma do this, gonna have to change the basic message logic.
+              var room = args[0]
+              SOCKET_ADDY[user.username].room = args[0]
+              return systemmessage(usersocket,`<b>(INDEV, NONFUNCTIONAL)</b> Your room has been changed to ${args[0]}`)
+              break;
+            case '%room':
+              return systemmessage(usersocket,`<b>(INDEV, NONFUNCTIONAL)</b> Your are currently in ${SOCKET_ADDY[user.username].room}`)
+              break;
+            case '%upclookup':
+            async function upclookup(){
+              var barcode = args[0]
+              if(barcode === undefined){return systemannounce('You have to include a barcode to look up!')}
+              const read = await fetch(`https://api.upcitemdb.com/prod/trial/lookup?upc=${barcode}`).then(response => response.json()).catch(error => {return message.channel.send(`There was a problem! Are you sure your upc code was entered correctly? If so, I'm afraid I can't find it. I'm sorry ${message.author} `)})
+                if (read.items === undefined){return systemmessage(usersocket,"`:(`")}
+
+                if (read.items[0].offers != undefined){
+                var price = read.items[0].offers[0].price}
+                if (price === null){var readprice = "`price not found`"}
+
+
+                else {var readprice = price}
+                systemmessage(usersocket,`Barcode ${barcode} refers to ${read.items[0].title}. It can be bought at ${read.items[0].offers[0].merchant} for ${readprice}. Image:<p><a href="${read.items[0].images[0]}">Click Here</a></p>`)
+              }
+              upclookup()
+
+              break;
+
+            default:
+
+          }
+          console.log(data)
+          if(data!==undefined && isNaN(data) === true){
+          if(data.includes(':devilish:')){
+            data = data.split(':devilish:').join('😈')
+          }
+          if(data.includes(':tableflip:')){
+            data = data.split(':tableflip:').join('┛◉Д◉)┛彡┻━┻')
+          }
+          if(data.includes(':lenny:')){
+            data = data.split(':lenny:').join('( ͡° ͜ʖ ͡°)')
+          }
+          if(data.includes(':crying:')){
+            data = data.split(':crying:').join('😭')
+          }
+          if(data.includes(':huh:')){
+            data = data.split(':huh:').join('😕')
+          }
+          if(data.includes(':bat:')){
+            data = data.split(':bat:').join('⎛⎝(•ⱅ•)⎠⎞')
+          }
+          if(data.includes(':thx:')){
+            data = data.split(':thx:').join('🙇')
+          }
+          if(data.includes(':clown:')){
+            data = data.split(':thx:').join('🤡')
+          }
+
+        }
+
+          //if(cmd === `changename`){
+          //  socketId = args.join(' ')
+          //  console.log('Name Change Detected')
+          //}
+          //if(data === 'help'){
+          //  var data = 'Welcome to my chat app! Do "changename name" to change your username!'
+          //}
+          //if(cmd === 'img'){
+          //  var data = `<img src="${args[0]}" alt="sent image" style="width:50px;height:50px;>`
+          //}
+
+            if(data.length > 145){return SOCKET_LIST[usersocket].emit('addToChat', `<name style="color:${user.color}";><b>SYSTEM</b>:</name><par>Messages may not exceed 145 characters!</par>`);
+            console.log(`${user.username} attemped to send a message longer than 145 characters.`)}
+            console.log('someone sent a message!');
+            for(var i in SOCKET_LIST){
+            SOCKET_LIST[i].emit('addToChat', `<name style="color:${user.color}";><b>${user.username}</b>:</name><par>${data}</par>`);
+
+            }
+
+        });
+
+        socket.on('disconnect',function(){
+
+            delete SOCKET_LIST[socket.id];
+
+ });
+
+});
+
+server.listen(4141);

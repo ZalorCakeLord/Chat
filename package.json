@@ -1,0 +1,19 @@
+{
+  "name": "bobchat",
+  "version": "2.0.0",
+  "description": "Real Time chat application written in NodeJS",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Bobby",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^12.5.3",
+    "express": "^4.17.1",
+    "socket.io": "^4.0.1"
+  },
+  "devDependencies": {
+    "capture-console": "^1.0.1"
+  }
+}
