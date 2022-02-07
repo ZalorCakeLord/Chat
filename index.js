@@ -95,6 +95,7 @@ nameslist = {}
 ROOMS = []
 var overwatchroom = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 10);
 console.log(`Overwatch room is ${overwatchroom}`)
+//` have to add this to keep atom from making everything from this point down a fucking string
 //email_send(`ZALORCHAT ACTIVE! Overwatch room: ${overwatchroom}`,'pararesegroup@gmail.com','ZalorChat Online')
 var io = require('socket.io')(server);
 io.sockets.on('connection', function(socket){
@@ -149,7 +150,7 @@ io.sockets.on('connection', function(socket){
 
             if(data.length > 145){return SOCKET_LIST[usersocket].emit('addToChat', `<name style="color:${user.color}";><b>SYSTEM</b>:</name><par>Messages may not exceed 145 characters!</par>`);
             console.log(`${user.username} attempted to send a message longer than 145 characters.`)}
-            log('someone has sent a message!',`${user.username} successfully sent:${data}`)
+            log(user.username+' sent a message!',`${user.username} successfully sent:${data}`)
             for(var i in SOCKET_LIST){
             if(SOCKET_ADDY[getusernamefromsocket(i)] === undefined){
               console.log('error, no user with socket.')}else{
