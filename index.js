@@ -11,6 +11,7 @@ let commands = fs.readdirSync('./commands').filter(file => file.endsWith('.js'))
 var server = require('http').createServer(app);
 const ReadDatabase = fs.readFileSync('./users.json'); //reads the file in synchronized way
 const ReadData = JSON.parse(ReadDatabase);
+let SOCKET_LIST = {};
 debugmode = false
 function getusernamefromsocket(id){
   let lol = ''
@@ -93,7 +94,7 @@ app.use('/client',express.static(__dirname + '/client'));
 console.log("ZALORCHAT VER 2.0.0")
 console.log("Server started.");
 SOCKET_ADDY = []
-SOCKET_LIST = {};
+
 ANOTHER_FUCKING_LIST = []
 nameslist = {}
 ROOMS = []
