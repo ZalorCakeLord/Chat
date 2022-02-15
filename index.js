@@ -13,7 +13,10 @@ const ReadDatabase = fs.readFileSync('./users.json'); //reads the file in synchr
 const ReadData = JSON.parse(ReadDatabase);
 debugmode = false
 function getusernamefromsocket(id){
-  let lol = Object.entries(SOCKET_ADDY).find(([username, socket]) => socket.socket === id)?.[0]
+  let lol = ''
+  for(let i=0;i<ANOTHER_FUCKING_LIST.length;i++){
+    if(ANOTHER_FUCKING_LIST[i].socket===id){lol = ANOTHER_FUCKING_LIST[i].username}
+  }
   return lol
 }
 function log(msg,extmsg){
@@ -91,6 +94,7 @@ console.log("ZALORCHAT VER 2.0.0")
 console.log("Server started.");
 SOCKET_ADDY = []
 SOCKET_LIST = {};
+ANOTHER_FUCKING_LIST = []
 nameslist = {}
 ROOMS = []
 var overwatchroom = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 10);
@@ -116,6 +120,7 @@ io.sockets.on('connection', function(socket){
         nameslist[user.username] = 0
         SOCKET_ADDY[username] = {socket: socketId, room: 'GENERAL'}
         SOCKET_LIST[socketId] = socket;
+        ANOTHER_FUCKING_LIST.push(user)
 
 
         var usersocket = SOCKET_ADDY[user.username].socket
