@@ -21,5 +21,5 @@ if(data.includes(':thx:')){
   data = data.split(':thx:').join('🙇')
 }
 if(data.includes(':clown:')){
-  data = data.split(':thx:').join('🤡')
+  data = data.split(':clown:').join('🤡')
 }

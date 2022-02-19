@@ -98,17 +98,21 @@ SOCKET_ADDY = []
 ANOTHER_FUCKING_LIST = []
 nameslist = {}
 ROOMS = []
+let pop=0
 var overwatchroom = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 10);
 console.log(`Overwatch room is ${overwatchroom}`)
 //` have to add this to keep atom from making everything from this point down a fucking string
 //email_send(`ZALORCHAT ACTIVE! Overwatch room: ${overwatchroom}`,'pararesegroup@gmail.com','ZalorChat Online')
 var io = require('socket.io')(server);
 io.sockets.on('connection', function(socket){
-
+       pop+=1
         var socketId = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 10);
         var username = socketId
         systemannounce("A new user has connected!")
+        for(var i in SOCKET_LIST){
+        SOCKET_LIST[i].emit('pop', pop)
 
+        }
         var user = {
           username: socketId,
           loginuser:'',
@@ -128,7 +132,9 @@ io.sockets.on('connection', function(socket){
         log('new user!',`${user.socket} has connected`);
         SOCKET_LIST[usersocket].emit('name',{name:user.username,color:user.color})
         SOCKET_LIST[usersocket].emit('changeroom',user.room)
-
+        socket.on('popReq',function(data){
+          socket.emit('pop',pop)
+        })
         socket.on('sendMsgToServer',function(data){
           log(' ',`${user.username} attempted to send:${data}`)
           let orgmsg = data
@@ -171,8 +177,14 @@ io.sockets.on('connection', function(socket){
               default:
 
             }
+            let clas = ''
+            if(data.split(' ').includes('#neon')){
+              data = data.replace(/#neon/,'')
+              clas = 'class="neon"'
+              console.log('neon')
+            }
+              SOCKET_LIST[i].emit('addToChat', `<name style="color:${user.color}";><b><small>${prefixa}(${user.room})  </small>${user.username}</b>:</name><par ${clas}>${data}</par>`);
 
-            SOCKET_LIST[i].emit('addToChat', `<name style="color:${user.color}";><b><small>${prefixa}(${user.room})  </small>${user.username}</b>:</name><par>${data}</par>`);
 
           }}
           }
@@ -181,8 +193,12 @@ io.sockets.on('connection', function(socket){
 
         socket.on('disconnect',function(){
             systemannounce(`${user.username} has disconnected.`)
+            pop-=1
             log(`${user.username} has disconnected`,`${user.username},${user.socket} disconnected`)
+            for(var i in SOCKET_LIST){
+            SOCKET_LIST[i].emit('pop', pop)
 
+            }
             delete SOCKET_LIST[socket.id];
             delete nameslist[user.username]
             usewrite()
