@@ -162,6 +162,11 @@ io.sockets.on('connection', function(socket){
 
             if(data.length > 145){return SOCKET_LIST[usersocket].emit('addToChat', `<name style="color:${user.color}";><b>SYSTEM</b>:</name><par>Messages may not exceed 145 characters!</par>`);
             console.log(`${user.username} attempted to send a message longer than 145 characters.`)}
+            let clas = ''
+            if(data.split(' ').includes('#neon')){
+              data = data.replace(/#neon/,'')
+              clas = 'class="neon"'
+            }
             log(user.username+' sent a message!',`${user.username} successfully sent:${data}`)
             for(var i in SOCKET_LIST){
             if(SOCKET_ADDY[getusernamefromsocket(i)] === undefined){
@@ -177,12 +182,7 @@ io.sockets.on('connection', function(socket){
               default:
 
             }
-            let clas = ''
-            if(data.split(' ').includes('#neon')){
-              data = data.replace(/#neon/,'')
-              clas = 'class="neon"'
-              console.log('neon')
-            }
+
               SOCKET_LIST[i].emit('addToChat', `<name style="color:${user.color}";><b><small>${prefixa}(${user.room})  </small>${user.username}</b>:</name><par ${clas}>${data}</par>`);
 
 
