@@ -8,6 +8,7 @@ if(ReadData.users[0][username].password === password && ReadData.users[0][userna
 user.username = ReadData.users[0][username].nickname
 user.color = ReadData.users[0][username].color
 user.login = true
+user.loginuser = ReadData.users[0][username].username
 console.log('Name Change Detected')
 SOCKET_ADDY[user.username] = {socket: socketId, room: SOCKET_ADDY[oldname].room}
 delete SOCKET_ADDY[oldname];
