@@ -1,7 +1,15 @@
+
+//Thus begins my greatest toil... fixing my my own code
+
+//this bit here is basically a catch all, preventing any error from crashing the program
+//I imagine this is not best practice
+//I'll fix it later
 process.on('uncaughtException', function(err) {
   console.log('Caught exception: ' + err);
-  consoleroom('Caught exception: ' + err)
+  //consoleroom('Caught exception(bit of a bruh moment hm?): ' + err)
 });
+
+//dependencies and setup
 const fs = require('fs');
 var express = require('express');
 var app = express();
@@ -13,18 +21,42 @@ const ReadDatabase = fs.readFileSync('./users.json'); //reads the file in synchr
 const ReadData = JSON.parse(ReadDatabase);
 let SOCKET_LIST = {};
 debugmode = false
+
+
+
+//functions used inside the main code. this is gonna suck.
+
+//can definitely change this
+//userlist:
+/*
+        let user = {
+          username: socketId, //initially starts as the randomly generated socketId
+          loginuser:'',//for if the user is logged in, idr what it actually does :(
+          socket: socketId,//randomly generated on connection
+          color: '#FF0000', 
+          room: 'GENERAL',
+          login: false,
+          send(msg){
+            console.log('test')
+            //leaving this here as a good idea
+          }
+        }
+        userList.push(user)    this is for me to look at, should delete it after
+
+*/
 function getusernamefromsocket(id){
-  let lol = ''
-  for(let i=0;i<ANOTHER_FUCKING_LIST.length;i++){
-    if(ANOTHER_FUCKING_LIST[i].socket===id){lol = ANOTHER_FUCKING_LIST[i].username}
+  for(let i = 0;i<userList.length;i++){//lots of nice for(i in whatever) here, not bothering though
+    let {username,socket} = userList[i]
+    if(socket === id) return username
   }
-  return lol
 }
+
 function log(msg,extmsg){
   if(debugmode === true){console.log(extmsg)}
   else{console.log(msg)}
 }
-function removeA(arr) {
+
+function removeA(arr) {//this was definitely NOT my code lmao.
     var what, a = arguments, L = a.length, ax;
     while (L > 1 && arr.length) {
         what = a[--L];
@@ -34,58 +66,45 @@ function removeA(arr) {
     }
     return arr;
 }
+
 function systemmessage(usr,msg){
   SOCKET_LIST[usr].emit('addToChat', `<name style="color:#FF0000";><b>SYSTEM</b>:</name><par>${msg}</par>`)
 }
+
 function systemannounce(msg){
   for(var i in SOCKET_LIST){
   SOCKET_LIST[i].emit('addToChat', `<name style="color:#FF0000";><b>SYSTEM</b>:</name><par>${msg}</par>`)
 
   }
 }
-function consoleroom(msg){
-  for(var i in SOCKET_LIST){
-  if(SOCKET_ADDY[getusernamefromsocket(i)] === undefined){
-    console.log('error, no user with socket.')}else{
-  if(SOCKET_ADDY[getusernamefromsocket(i)].room === 'CONSOLE'){
 
-  SOCKET_LIST[i].emit('addToChat', `<name style="color:#FF0000";><b>SYSTEM</b>:</name><par>${msg}</par>`)
 
-}}
-}
-}
-const { gmailuser, gmailpass, MYNUMBER } = require('./config.json');
-function email_send(msg,to,subj){
-  var nodemailer = require('nodemailer');
+//commenting out all consoleroom code, it doesn't even work half the time.
+// function consoleroom(msg){
+//   for(var i in SOCKET_LIST){
+//   if(SOCKET_ADDY[getusernamefromsocket(i)] === undefined){
+//     console.log('error, no user with socket.')}else{
+//   if(SOCKET_ADDY[getusernamefromsocket(i)].room === 'CONSOLE'){
 
-  var transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: gmailuser,
-      pass: gmailpass
-    }
-  });
+//   SOCKET_LIST[i].emit('addToChat', `<name style="color:#FF0000";><b>SYSTEM</b>:</name><par>${msg}</par>`)
 
-  var mailOptions = {
-    from: 'ZalorChat System Message',
-    to: `${to}`,
-    subject: `${subj}`,
-    text: `${msg}`
-  };
+// }}
+// }
+// }
 
-  transporter.sendMail(mailOptions, function(error, info){
-    if (error) {
-      console.log(error);
-    } else {
-      console.log('Email sent: ' + info.response);
-    }
-  });
-}
+
+
+
+
+
+//rewriting user database. not touchin this yet.
 function usewrite(){
   let edited_ReadData = JSON.stringify(ReadData);
   fs.writeFileSync("./users.json", edited_ReadData);
 }
 
+
+//THE NITTYGRITTY! from here on we jump into the proper server bits
 app.get('/',function(req, res) {
  res.sendFile(__dirname + '/client/index.html');
 });
@@ -94,15 +113,23 @@ app.use('/client',express.static(__dirname + '/client'));
 console.log("ZALORCHAT VER 2.0.0")
 console.log("Server started.");
 SOCKET_ADDY = []
-
+//lots of extraneous code, need to fix that. I think most of these lists are the same hting but in
+//a different way.
 ANOTHER_FUCKING_LIST = []
 nameslist = {}
 ROOMS = []
-let pop=0
-var overwatchroom = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 10);
-console.log(`Overwatch room is ${overwatchroom}`)
-//` have to add this to keep atom from making everything from this point down a fucking string
-//email_send(`ZALORCHAT ACTIVE! Overwatch room: ${overwatchroom}`,'pararesegroup@gmail.com','ZalorChat Online')
+//adding another list makes me wanna throw up, but I think it's a good idea. should let me
+//get rid of all the others if it works like I'm thinking.
+let userList = []
+
+let pop=0 //holds total population of server. defined outside sockets in order to cover all of them.
+
+//randomly generates a room which will receive every message.
+//var overwatchroom = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 10);
+//console.log(`Overwatch room is ${overwatchroom}`)
+
+
+//fuck it, nuclear option.
 var io = require('socket.io')(server);
 io.sockets.on('connection', function(socket){
        pop+=1
@@ -113,19 +140,28 @@ io.sockets.on('connection', function(socket){
         SOCKET_LIST[i].emit('pop', pop)
 
         }
-        var user = {
-          username: socketId,
-          loginuser:'',
-          socket: socketId,
-          color: '#FF0000',
-          room: 'GENERAL',
-          login: false
-        }
 
+        //very important, the user object!
+        let user = {
+          username: socketId, //initially starts as the randomly generated socketId
+          loginuser:'',//for if the user is logged in, idr what it actually does :(
+          socket: socketId,//randomly generated on connection
+          color: '#FF0000', 
+          room: 'GENERAL',
+          login: false,
+          send(msg){
+            console.log('test')
+            //leaving this here as a good idea
+          }
+        }
+        userList.push(user)
+
+        //heres some more gore
         nameslist[user.username] = 0
         SOCKET_ADDY[username] = {socket: socketId, room: 'GENERAL'}
         SOCKET_LIST[socketId] = socket;
         ANOTHER_FUCKING_LIST.push(user)
+        //this is already filling me with despair, gonna jump to rewriting the functions
 
 
         var usersocket = SOCKET_ADDY[user.username].socket
@@ -176,7 +212,7 @@ io.sockets.on('connection', function(socket){
             for(var i in SOCKET_LIST){
             if(SOCKET_ADDY[getusernamefromsocket(i)] === undefined){
               console.log('error, no user with socket.')}else{
-            if(SOCKET_ADDY[getusernamefromsocket(i)].room === user.room || SOCKET_ADDY[getusernamefromsocket(i)].room === overwatchroom){
+            if(SOCKET_ADDY[getusernamefromsocket(i)].room === user.room/* || SOCKET_ADDY[getusernamefromsocket(i)].room === overwatchroom*/){
             switch (user.login) {
               case true:
                 prefixa = '✅'
